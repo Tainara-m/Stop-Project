@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>STOP! Multiplayer (Supabase)</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Crect%20width=%2264%22%20height=%2264%22%20rx=%2214%22%20fill=%22%2314123a%22/%3E%3Cpolygon%20points=%2222%2C6%2042%2C6%2058%2C22%2058%2C42%2042%2C58%2022%2C58%206%2C42%206%2C22%22%20fill=%22%23e11d74%22%20stroke=%22%23ffd23f%22%20stroke-width=%223%22%20stroke-linejoin=%22round%22/%3E%3Cpath%20d=%22M42%2023C42%2015%2022%2014%2022%2024C22%2034%2042%2030%2042%2040C42%2051%2022%2050%2022%2041%22%20fill=%22none%22%20stroke=%22%23fff%22%20stroke-width=%227%22%20stroke-linecap=%22round%22/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Nunito:wght@600;800&display=swap">
 <style>
 :root{--bg:#eef1ff;--card:#fff;--ink:#14123a;--mut:#5f5c85;--blue:#3b3bff;--stop:#e11d74;--sun:#ffd23f;--ok:#0e9f6e;--line:#d6d9f5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -138,7 +139,7 @@ tfoot td{font-weight:800}
 import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
 
 /* ====== COLE AQUI OS DADOS DO SEU PROJETO SUPABASE ====== */
-const SUPABASE_URL="https://tnjaasqfktqriotvqdjq.supabase.co/";      // ex.: https://abcdxyz.supabase.co
+const SUPABASE_URL="https://tnjaasqfktqriotvqdjq.supabase.co/";      // ex.: https://abcdxyz.supabase.co (só o endereço, sem /rest/v1/)
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuamFhc3Fma3RxcmlvdHZxZGpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MTY0NjUsImV4cCI6MjEwODA5MjQ2NX0.SxIF3ibrC4i0IV2Mefy78xPXclopu_XEokK3FTR8K4M";      // chave "anon" / "publishable"
 /* ======================================================== */
 
@@ -146,7 +147,7 @@ let db=null,uid="";
 try{uid=localStorage.getItem("stop-uid")||"";if(!uid){uid="u"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("stop-uid",uid)}}catch(e){uid="u"+Math.random().toString(36).slice(2,12)}
 
 if(SUPABASE_URL.startsWith("http")&&!SUPABASE_KEY.startsWith("COLE")){
-  const sb=createClient(SUPABASE_URL,SUPABASE_KEY), T="docs";
+  const sb=createClient(new URL(SUPABASE_URL.trim()).origin,SUPABASE_KEY.trim()), T="docs"; /* usa só o endereço base, mesmo que a URL colada tenha /rest/v1/ no final */
   const last=p=>p.split("/").pop(), par=p=>p.split("/").slice(0,-1).join("/");
   const snap=(p,row)=>({id:last(p),exists:!!row,data:()=>row?row.data:undefined});
   const getRow=async p=>{const {data,error}=await sb.from(T).select("*").eq("path",p).maybeSingle();if(error)throw error;return data};
