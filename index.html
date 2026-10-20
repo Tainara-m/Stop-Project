@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>STOP! Multiplayer (Supabase)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Nunito:wght@600;800&display=swap">
+<style>
+:root{--bg:#eef1ff;--card:#fff;--ink:#14123a;--mut:#5f5c85;--blue:#3b3bff;--stop:#e11d74;--sun:#ffd23f;--ok:#0e9f6e;--line:#d6d9f5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f0e2a;--card:#1b1a45;--ink:#f2f1ff;--mut:#a9a7d6;--blue:#8b8bff;--stop:#ff4d95;--ok:#34d399;--line:#35336b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f0e2a;--card:#1b1a45;--ink:#f2f1ff;--mut:#a9a7d6;--blue:#8b8bff;--stop:#ff4d95;--ok:#34d399;--line:#35336b;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:600 16px/1.4 Nunito,system-ui,sans-serif;min-height:100vh}
+main{max-width:660px;margin:0 auto;padding:16px}
+h1,h2,.big{font-family:"Bowlby One",Impact,sans-serif;font-weight:400;margin:0}
+h3{margin:14px 0 6px;font-size:16px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:18px;padding:18px;box-shadow:5px 5px 0 var(--ink);margin-bottom:14px}
+.hide{display:none!important}
+button{font:800 16px Nunito,system-ui,sans-serif;cursor:pointer;border:2px solid var(--ink);border-radius:12px;padding:11px 16px;background:var(--sun);color:#14123a;box-shadow:3px 3px 0 var(--ink)}
+button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+button:disabled{opacity:.5;cursor:default}
+button.alt{background:var(--card);color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+input,select{width:100%;font:800 18px Nunito,system-ui,sans-serif;padding:11px 12px;border-radius:12px;border:2px solid var(--ink);background:var(--bg);color:var(--ink)}
+input:disabled{opacity:.6}
+label span{display:block;font-size:14px;color:var(--mut);margin:8px 0 3px}
+.title{font-size:clamp(44px,15vw,84px);line-height:.95;color:var(--stop);text-shadow:4px 4px 0 var(--ink);text-align:center;margin:6vh 0 16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.row>*{flex:1;min-width:130px}
+.sep{text-align:center;color:var(--mut);margin:14px 0}
+.err{color:var(--stop);font-weight:800;min-height:1.3em;margin:8px 0 0}
+.note{color:var(--mut);font-size:14px}
+#hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-weight:800}
+#hdr .big{font-size:24px;color:var(--blue);letter-spacing:2px}
+.pl{list-style:none;padding:0;margin:10px 0}
+.pl li{padding:8px 12px;border:2px solid var(--ink);border-radius:12px;margin-bottom:6px;background:var(--bg);display:flex;justify-content:space-between}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;font-weight:800}
+.tile{width:92px;height:92px;border-radius:20px;background:var(--blue);color:#fff;border:2px solid var(--ink);display:grid;place-items:center;font:400 56px "Bowlby One",Impact,sans-serif;box-shadow:4px 4px 0 var(--ink)}
+.tile.spin{animation:shake .12s infinite;background:var(--sun);color:#14123a}
+.tile.pop{animation:pop .45s ease-out}
+@keyframes shake{0%{transform:rotate(-4deg)}50%{transform:rotate(4deg) translateY(-3px)}100%{transform:rotate(-4deg)}}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.tile.spin,.tile.pop{animation:none}}
+.timer{font:400 34px "Bowlby One",Impact,sans-serif;min-width:2.2ch;text-align:right}
+.timer.low{color:var(--stop)}
+.f{display:block;margin-bottom:8px}
+#stopbtn{width:100%;margin-top:6px;background:var(--stop);color:#fff;font:400 28px "Bowlby One",Impact,sans-serif;padding:14px}
+#msg{text-align:center;font-weight:800;color:var(--stop);min-height:1.4em;margin:10px 0 0}
+.ans{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ans b{min-width:80px}.ans .a{flex:1;min-width:90px}
+.chip{font-size:12px;padding:1px 8px;border-radius:9px;background:var(--line)}
+.chip.bad{background:var(--stop);color:#fff}
+.ans .x{text-decoration:line-through;color:var(--mut)}
+.ans button{padding:4px 10px;font-size:14px;box-shadow:2px 2px 0 var(--ink)}
+.ans button[aria-pressed="true"]{background:var(--stop);color:#fff}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:14px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.pt{display:inline-block;margin-left:4px;padding:0 6px;border-radius:8px;font-size:12px;background:var(--line)}
+.p10{background:var(--ok);color:#fff}.p5{background:var(--sun);color:#14123a}
+tfoot td{font-weight:800}
+.rank{list-style:none;padding:0;margin:14px 0}
+.rank li{display:flex;justify-content:space-between;padding:10px 12px;border:2px solid var(--ink);border-radius:12px;margin-bottom:8px;background:var(--bg)}
+.rank li:first-child{background:var(--sun);color:#14123a}
+</style>
+</head>
+<body>
+<main>
+<div id="hdr" class="hide"><span>Sala <span class="big" id="code"></span></span><span id="pc" class="note"></span></div>
+
+<section id="fail" class="hide card">
+  <h2 style="font-size:24px">Não foi possível conectar</h2>
+  <p>Falta configurar o Supabase: cole a URL e a chave do seu projeto no começo do script deste arquivo.</p>
+</section>
+
+<section id="gate">
+  <h1 class="title">STOP!</h1>
+  <div class="card">
+    <label><span>Seu apelido</span><input id="name" maxlength="16" autocomplete="off"></label>
+    <p class="err" id="gerr"></p>
+    <button id="create" style="width:100%">Criar sala</button>
+    <p class="sep">ou entre em uma sala</p>
+    <div class="row">
+      <label><span>Código da sala</span><input id="jcode" maxlength="4" autocapitalize="characters" autocomplete="off"></label>
+      <button id="join" class="alt">Entrar</button>
+    </div>
+    
+  </div>
+</section>
+
+<section id="lobby" class="hide card">
+  <h2 style="font-size:24px">Sala de espera</h2>
+  <p class="note">Passe o código para quem vai jogar. Cada pessoa abre esta mesma página e entra com o código.</p>
+  <ul class="pl" id="plist"></ul>
+  <div class="row" id="opts">
+    <label><span>Rodadas</span><select id="orounds"><option>3</option><option>5</option><option>8</option></select></label>
+    <label><span>Tempo por rodada</span><select id="otime"><option value="45">45 s</option><option value="60">60 s</option><option value="90">90 s</option></select></label>
+  </div>
+  <p class="note" id="wait"></p>
+  <button id="start" style="width:100%;margin-top:10px">Começar jogo</button>
+</section>
+
+<section id="play" class="hide">
+  <div class="top">
+    <div class="tile" id="letter">?</div>
+    <div>Rodada <span id="rn"></span></div>
+    <div class="timer" id="tm"></div>
+  </div>
+  <div class="card" id="fields"></div>
+  <button id="stopbtn">STOP!</button>
+  <p id="msg"></p>
+</section>
+
+<section id="review" class="hide card">
+  <h2 style="font-size:24px">Avalie as respostas · letra <span id="rl"></span></h2>
+  <p class="note">Respostas que não começam com a letra ou ficaram em branco já são anuladas. Toque em “Contestar” se uma resposta não vale. Se mais da metade dos outros jogadores contestar, ela perde os pontos.</p>
+  <div id="revlist"></div>
+  <p class="note" id="rwait"></p>
+  <button id="toresults" style="width:100%;margin-top:10px">Mostrar pontuação</button>
+</section>
+
+<section id="results" class="hide card">
+  <h2 style="font-size:24px" id="rt"></h2>
+  <div class="tw"><table id="tb"></table></div>
+  <p class="note" id="nwait"></p>
+  <button id="nextbtn" style="width:100%"></button>
+</section>
+
+<section id="end" class="hide card">
+  <h2 style="font-size:28px">Fim de jogo</h2>
+  <ol class="rank" id="rank"></ol>
+  <p class="note" id="ewait"></p>
+  <button id="again" style="width:100%">Nova partida</button>
+</section>
+</main>
+
+<script type="module">
+import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
+
+/* ====== COLE AQUI OS DADOS DO SEU PROJETO SUPABASE ====== */
+const SUPABASE_URL="https://tnjaasqfktqriotvqdjq.supabase.co/";      // ex.: https://abcdxyz.supabase.co
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuamFhc3Fma3RxcmlvdHZxZGpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MTY0NjUsImV4cCI6MjEwODA5MjQ2NX0.SxIF3ibrC4i0IV2Mefy78xPXclopu_XEokK3FTR8K4M";      // chave "anon" / "publishable"
+/* ======================================================== */
+
+let db=null,uid="";
+try{uid=localStorage.getItem("stop-uid")||"";if(!uid){uid="u"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("stop-uid",uid)}}catch(e){uid="u"+Math.random().toString(36).slice(2,12)}
+
+if(SUPABASE_URL.startsWith("http")&&!SUPABASE_KEY.startsWith("COLE")){
+  const sb=createClient(SUPABASE_URL,SUPABASE_KEY), T="docs";
+  const last=p=>p.split("/").pop(), par=p=>p.split("/").slice(0,-1).join("/");
+  const snap=(p,row)=>({id:last(p),exists:!!row,data:()=>row?row.data:undefined});
+  const getRow=async p=>{const {data,error}=await sb.from(T).select("*").eq("path",p).maybeSingle();if(error)throw error;return data};
+  const getRows=async p=>{const {data,error}=await sb.from(T).select("*").eq("parent",p);if(error)throw error;return data||[]};
+  const put=async(p,d)=>{const {error}=await sb.from(T).upsert({path:p,parent:par(p),data:d});if(error)throw error};
+  let n=0;
+  /* Realtime avisa das mudanças; a consulta a cada 3 s é uma garantia caso o Realtime não esteja ativo */
+  const watch=(filter,load,emit,err)=>{
+    let alive=true,busy=false,again=false,first=true,prev;
+    const run=async()=>{
+      if(!alive)return; if(busy){again=true;return} busy=true;
+      try{do{again=false;const r=await load(),j=JSON.stringify(r);if(j!==prev||first){prev=j;emit(r)}first=false}while(again&&alive)}
+      catch(e){if(first&&err)err(e)}
+      busy=false;
+    };
+    run();
+    const ch=sb.channel("c"+(++n)).on("postgres_changes",{event:"*",schema:"public",table:T,filter},run).subscribe();
+    const iv=setInterval(run,3000);
+    return()=>{alive=false;clearInterval(iv);sb.removeChannel(ch)};
+  };
+  db={
+    doc:p=>({
+      get:async()=>snap(p,await getRow(p)),
+      set:d=>put(p,d),
+      update:async d=>{const r=await getRow(p);await put(p,{...(r?r.data:{}),...d})},
+      onSnapshot:(nx,er)=>watch("path=eq."+p,()=>getRow(p),r=>nx(snap(p,r)),er)
+    }),
+    collection:p=>({
+      onSnapshot:(nx,er)=>watch("parent=eq."+p,()=>getRows(p),rs=>nx({docs:rs.map(r=>snap(r.path,r))}),er)
+    })
+  };
+}
+const CATS=["Nome","Animal","Cor","Fruta","País","Profissão"];
+const POOL="ABCDEFGHILMNOPRSTUV".split("");
+const $=id=>document.getElementById(id);
+const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rows=q=>q.docs.map(d=>({id:d.id,...d.data()}));
+let code="",myName="",unsubs=[];
+let S={room:null,players:[],answers:[],votes:[],events:[]};
+let L={k:"",begun:false,endAt:0,sub:"",adv:"",closeAt:0,rej:new Set(),revK:"",vBusy:false,vDirty:false,anim:0,tm:0,letter:""};
+const SECS=["gate","lobby","play","review","results","end","fail"];
+const show=id=>SECS.forEach(x=>$(x).classList.toggle("hide",x!==id));
+const key=r=>S.room.game+"_"+r;
+const gerr=m=>{$("gerr").textContent=m||""};
+const path=p=>"rooms/"+code+(p?"/"+p:"");
+
+async function init(){
+  if(!db){show("fail");return}
+  try{
+    const s=JSON.parse(localStorage.getItem("stop-room")||"null");
+    if(s){$("name").value=s.name;await join(s.code,s.name,true)}
+  }catch(e){}
+}
+
+async function create(){
+  const name=$("name").value.trim(); if(!name)return gerr("Digite seu apelido.");
+  gerr();
+  try{
+    let c;
+    for(let i=0;i<6;i++){
+      c=Array.from({length:4},()=>"ABCDEFGHJKMNPQRSTUVXZ"[Math.random()*21|0]).join("");
+      if(!(await db.doc("rooms/"+c).get()).exists)break;
+    }
+    await db.doc("rooms/"+c).set({host:uid,phase:"lobby",round:0,rounds:5,time:60,letters:[],game:1});
+    await join(c,name);
+  }catch(e){console.error(e);gerr("Não deu para criar a sala: "+((e&&(e.code||e.message))||e))}
+}
+
+async function join(c,name,quiet){
+  c=(c||"").trim().toUpperCase(); name=(name||"").trim();
+  if(!name)return gerr("Digite seu apelido.");
+  try{
+    if(!(await db.doc("rooms/"+c).get()).exists){ if(!quiet)gerr("Sala não encontrada."); return }
+    const ref=db.doc("rooms/"+c+"/players/"+uid), p=await ref.get();
+    await ref.set({name,at:p.exists?p.data().at:Date.now()});
+    code=c; myName=name;
+    try{localStorage.setItem("stop-room",JSON.stringify({code,name}))}catch(e){}
+    subscribe();
+  }catch(e){ console.error(e); if(!quiet)gerr("Não foi possível entrar: "+((e&&(e.code||e.message))||e)) }
+}
+
+function subscribe(){
+  unsubs.forEach(u=>u&&u()); unsubs=[];
+  const bad=()=>{$("hdr").classList.add("hide");show("fail")};
+  unsubs.push(db.doc(path()).onSnapshot(s=>{S.room=s.exists?s.data():null;render()},bad));
+  ["players","answers","votes","events"].forEach(k=>
+    unsubs.push(db.collection(path(k)).onSnapshot(q=>{S[k]=rows(q);if(k==="players")S.players.sort((a,b)=>a.at-b.at);render()},bad)));
+}
+
+function render(){
+  const R=S.room; if(!R)return;
+  $("hdr").classList.remove("hide"); $("code").textContent=code;
+  $("pc").textContent=S.players.length+" jogador"+(S.players.length===1?"":"es");
+  ({lobby:rLobby,play:rPlay,review:rReview,results:rResults,end:rEnd})[R.phase]();
+  hostTick();
+}
+const isHost=()=>S.room&&S.room.host===uid;
+const upd=o=>db.doc(path()).update(o).catch(()=>{});
+
+/* Sala de espera */
+function rLobby(){
+  show("lobby");
+  $("plist").innerHTML=S.players.map(p=>`<li><span>${esc(p.name)}</span><span class="note">${p.id===S.room.host?"anfitrião":""}</span></li>`).join("");
+  const h=isHost();
+  $("opts").classList.toggle("hide",!h); $("start").classList.toggle("hide",!h);
+  $("wait").textContent=h?"":"Aguardando o anfitrião começar o jogo.";
+  if(document.activeElement!==$("orounds"))$("orounds").value=S.room.rounds;
+  if(document.activeElement!==$("otime"))$("otime").value=S.room.time;
+}
+
+async function hostNext(){
+  const R=S.room, r=R.round+1;
+  const free=POOL.filter(l=>!R.letters.includes(l));
+  await upd({phase:"play",round:r,letters:[...R.letters,free[Math.random()*free.length|0]]});
+}
+
+/* Rodada: sorteio animado, preenchimento e STOP */
+function rPlay(){
+  show("play");
+  const R=S.room;
+  if(L.k!==key(R.round))startRound();
+  const st=S.events.find(e=>e.id==="stop_"+L.k);
+  if(st&&L.begun&&L.sub!==L.k)submit(st.by);
+}
+
+function startRound(){
+  const R=S.room, k=key(R.round);
+  clearTimeout(L.anim); clearInterval(L.tm);
+  L.k=k; L.begun=false; L.sub=""; L.adv=""; L.closeAt=0; L.letter=R.letters[R.round-1];
+  $("rn").textContent=R.round+" de "+R.rounds; $("tm").textContent=""; $("tm").classList.remove("low");
+  $("msg").textContent=""; $("stopbtn").disabled=true;
+  $("fields").innerHTML=CATS.map((c,i)=>`<label class="f"><span>${c} com ${L.letter}</span><input data-i="${i}" autocomplete="off" spellcheck="false" disabled></label>`).join("");
+  const ins=[...document.querySelectorAll("#fields input")];
+  ins.forEach((el,i)=>el.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();i<ins.length-1?ins[i+1].focus():stopNow()}}));
+  const t=$("letter"); t.classList.remove("pop"); t.classList.add("spin");
+  let n=0;
+  const step=()=>{
+    if(L.k!==k)return;
+    if(++n>18){t.classList.remove("spin");t.textContent=L.letter;t.classList.add("pop");begin();return}
+    t.textContent=POOL[Math.random()*POOL.length|0];
+    L.anim=setTimeout(step,50+n*9);
+  };
+  step();
+}
+
+function begin(){
+  L.begun=true; L.endAt=Date.now()+S.room.time*1000;
+  const ins=[...document.querySelectorAll("#fields input")];
+  ins.forEach(i=>i.disabled=false); ins[0].focus(); $("stopbtn").disabled=false;
+  clearInterval(L.tm); L.tm=setInterval(tick,250); tick();
+  const st=S.events.find(e=>e.id==="stop_"+L.k); if(st)submit(st.by);
+}
+
+function tick(){
+  const left=Math.max(0,Math.ceil((L.endAt-Date.now())/1000));
+  $("tm").textContent=left; $("tm").classList.toggle("low",left<=10);
+  if(left<=0)submit(2);
+}
+
+async function stopNow(){
+  if(!L.begun||L.sub===L.k)return;
+  const k=L.k;
+  if(!S.events.some(e=>e.id==="stop_"+k)){try{await db.doc(path("events/stop_"+k)).set({by:myName,k})}catch(e){}}
+  submit(1);
+}
+
+async function submit(why){
+  if(!L.begun||L.sub===L.k)return;
+  const k=L.k, r=S.room.round; L.sub=k; clearInterval(L.tm);
+  const ins=[...document.querySelectorAll("#fields input")];
+  const a=ins.map(i=>i.value.trim()); ins.forEach(i=>i.disabled=true); $("stopbtn").disabled=true;
+  $("msg").textContent=why===1?"Você gritou STOP!":why===2?"Acabou o tempo!":why+" gritou STOP!";
+  try{await db.doc(path("answers/"+k+"_"+uid)).set({game:S.room.game,round:r,uid,name:myName,a})}catch(e){}
+}
+
+/* O anfitrião encerra a rodada quando todos enviaram (ou após uma pequena espera) */
+function hostTick(){
+  const R=S.room;
+  if(!R||R.host!==uid||R.phase!=="play"||L.k!==key(R.round))return;
+  const stopped=S.events.some(e=>e.id==="stop_"+L.k)||(L.begun&&Date.now()>=L.endAt);
+  if(!stopped){L.closeAt=0;return}
+  if(!L.closeAt)L.closeAt=Date.now();
+  const n=S.answers.filter(a=>a.game===R.game&&a.round===R.round).length;
+  if((n>=S.players.length||Date.now()-L.closeAt>4500)&&L.adv!==L.k){
+    L.adv=L.k;
+    db.doc(path()).update({phase:"review"}).catch(()=>{L.adv=""});
+  }
+}
+setInterval(hostTick,500);
+
+/* Pontuação (calculada por todos a partir dos mesmos dados) */
+function scoreRound(r){
+  const R=S.room, l0=norm(R.letters[r-1]), ps=S.players, np=ps.length;
+  const A={}; S.answers.filter(x=>x.game===R.game&&x.round===r).forEach(x=>A[x.uid]=x.a||[]);
+  const V=S.votes.filter(v=>v.game===R.game&&v.round===r);
+  const tot={}; ps.forEach(p=>tot[p.id]=0);
+  const cats=CATS.map((_,i)=>{
+    const cell={};
+    ps.forEach(p=>{
+      const a=(A[p.id]||[])[i]||"", n=norm(a);
+      const rej=V.filter(v=>v.uid!==p.id&&(v.rej||[]).includes(p.id+":"+i)).length;
+      let st="ok";
+      if(!a)st="empty"; else if(n.length<2||n[0]!==l0)st="inv"; else if(rej*2>np-1)st="rej";
+      cell[p.id]={a,n,st,rej};
+    });
+    const cnt={}; ps.forEach(p=>{const c=cell[p.id];if(c.st==="ok")cnt[c.n]=(cnt[c.n]||0)+1});
+    ps.forEach(p=>{const c=cell[p.id];c.pts=c.st==="ok"?(cnt[c.n]>1?5:10):0;tot[p.id]+=c.pts});
+    return cell;
+  });
+  return {cats,tot};
+}
+function totals(upto){
+  const t={}; S.players.forEach(p=>t[p.id]=0);
+  for(let r=1;r<=upto;r++){const s=scoreRound(r).tot;for(const id in s)t[id]+=s[id]}
+  return t;
+}
+
+/* Avaliação das respostas */
+function lateSubmit(){if(L.begun&&L.k===key(S.room.round)&&L.sub!==L.k)submit(2)}
+
+function rReview(){
+  show("review"); lateSubmit();
+  const R=S.room, r=R.round, k=key(r), l=R.letters[r-1];
+  $("rl").textContent=l;
+  if(L.revK!==k){L.revK=k;const v=S.votes.find(v=>v.id===k+"_"+uid);L.rej=new Set(v?v.rej:[])}
+  const sc=scoreRound(r);
+  $("revlist").innerHTML=CATS.map((c,i)=>`<h3>${c}</h3>`+S.players.map(p=>{
+    const x=sc.cats[i][p.id], mine=p.id===uid;
+    const status=x.st==="empty"?'<span class="chip bad">em branco</span>':x.st==="inv"?`<span class="chip bad">não começa com ${esc(l)}</span>`:x.st==="rej"?'<span class="chip bad">recusada pelo grupo</span>':"";
+    const votable=(x.st==="ok"||x.st==="rej")&&!mine, on=L.rej.has(p.id+":"+i);
+    return `<div class="ans"><b>${esc(p.name)}${mine?" (você)":""}</b><span class="a ${x.st==="ok"?"":"x"}">${esc(x.a)||"—"}</span>${status}`+
+      (x.rej?`<span class="note">${x.rej} contestaç${x.rej>1?"ões":"ão"}</span>`:"")+
+      (votable?`<button data-k="${p.id}:${i}" aria-pressed="${on}">Contestar</button>`:"")+`</div>`;
+  }).join("")).join("");
+  const h=isHost();
+  $("toresults").classList.toggle("hide",!h);
+  $("rwait").textContent=h?"Quando todos terminarem de avaliar, mostre a pontuação.":"Avalie as respostas e aguarde o anfitrião mostrar a pontuação.";
+}
+$("revlist").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-k]"); if(!b)return;
+  const k=b.dataset.k; L.rej.has(k)?L.rej.delete(k):L.rej.add(k);
+  b.setAttribute("aria-pressed",L.rej.has(k)); saveVotes();
+});
+async function saveVotes(){
+  if(L.vBusy){L.vDirty=true;return}
+  L.vBusy=true;
+  try{do{L.vDirty=false;const R=S.room;
+    await db.doc(path("votes/"+key(R.round)+"_"+uid)).set({game:R.game,round:R.round,uid,rej:[...L.rej]})}while(L.vDirty)}catch(e){}
+  L.vBusy=false;
+}
+
+/* Resultado da rodada */
+function rResults(){
+  show("results");
+  const R=S.room, r=R.round, sc=scoreRound(r), tt=totals(r);
+  $("rt").textContent="Rodada "+r+" · letra "+R.letters[r-1];
+  const cell=(x)=>(x.a?(x.st==="ok"?esc(x.a):`<span class="x" style="text-decoration:line-through;color:var(--mut)">${esc(x.a)}</span>`):"—")+`<span class="pt ${x.pts===10?"p10":x.pts===5?"p5":""}">${x.pts}</span>`;
+  $("tb").innerHTML="<thead><tr><th></th>"+S.players.map(p=>`<th>${esc(p.name)}</th>`).join("")+"</tr></thead><tbody>"+
+    CATS.map((c,i)=>`<tr><th>${c}</th>`+S.players.map(p=>`<td>${cell(sc.cats[i][p.id])}</td>`).join("")+"</tr>").join("")+
+    "</tbody><tfoot><tr><td>Rodada</td>"+S.players.map(p=>`<td>${sc.tot[p.id]}</td>`).join("")+"</tr><tr><td>Total</td>"+S.players.map(p=>`<td>${tt[p.id]}</td>`).join("")+"</tr></tfoot>";
+  const h=isHost(), last=r>=R.rounds;
+  $("nextbtn").classList.toggle("hide",!h); $("nextbtn").textContent=last?"Ver ranking final":"Próxima rodada";
+  $("nwait").textContent=h?"":"Aguardando o anfitrião seguir para a próxima etapa.";
+}
+
+function rEnd(){
+  show("end");
+  const t=totals(S.room.rounds);
+  $("rank").innerHTML=S.players.slice().sort((a,b)=>t[b.id]-t[a.id]).map((p,i)=>`<li><span>${i+1}º ${esc(p.name)}</span><span>${t[p.id]} pts</span></li>`).join("");
+  const h=isHost(); $("again").classList.toggle("hide",!h);
+  $("ewait").textContent=h?"":"O anfitrião pode iniciar uma nova partida.";
+}
+
+/* Eventos */
+$("create").onclick=create;
+$("join").onclick=()=>join($("jcode").value,$("name").value);
+$("start").onclick=hostNext;
+$("orounds").onchange=e=>upd({rounds:+e.target.value});
+$("otime").onchange=e=>upd({time:+e.target.value});
+$("stopbtn").onclick=stopNow;
+$("toresults").onclick=()=>upd({phase:"results"});
+$("nextbtn").onclick=()=>S.room.round>=S.room.rounds?upd({phase:"end"}):hostNext();
+$("again").onclick=()=>upd({phase:"lobby",round:0,letters:[],game:S.room.game+1});
+init();
+</script>
+</body>
+</html>
